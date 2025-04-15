@@ -25,35 +25,59 @@ const ColorInput = styled('input')`
   margin-left: 5px;
   margin-top: 10px;
   background: none;
+
+const [highlightedSubstructures, setHighlightedSubstructures] = useState([]);
+
 `
 
 export const Highlighting = ({ printToTerminal }: HighlightingProps) => {
-  const [color, setColor] = useState('#FF7F50')
+  const [color, setColor] = useState('#FF7F50');
+  const [highlightedSubstructures, setHighlightedSubstructures] = useState([]);
 
   const colorHandler = (event) => {
-    setColor(event.target.value)
-  }
+    setColor(event.target.value);
+  };
 
   const getAndPrintHighlights = () => {
-    const highlights = KetcherFunctions.getAllHighlights()
-    printToTerminal(JSON.stringify(highlights, null, 2))
-  }
+    const highlights = KetcherFunctions.getAllHighlights();
+    printToTerminal(JSON.stringify(highlights, null, 2));
+  };
 
   const createHighlight = () => {
     const { lastHighlightID, lastHighlight } =
-      KetcherFunctions.highlightSelection(color)
+      KetcherFunctions.highlightSelection(color);
 
     if (!lastHighlight) {
-      return
+      return;
     }
+
+    const substructureDetails = {
+      id: lastHighlightID,
+      content: lastHighlight,
+      color,
+    };
+
+    setHighlightedSubstructures((prev) => [...prev, substructureDetails]);
 
     const message =
       'New highlight ID: ' +
       lastHighlightID +
       ', content: \n' +
-      JSON.stringify(lastHighlight, null, 2)
-    printToTerminal(message)
-  }
+      JSON.stringify(lastHighlight, null, 2);
+    printToTerminal(message);
+  };
+
+  const saveHighlightsForSearch = () => {
+    const highlightsData = JSON.stringify(highlightedSubstructures, null, 2);
+    printToTerminal('Saving highlights for similarity search:\n' + highlightsData);
+
+    // Example for backend save:
+    // fetch('/api/save-highlights', {
+    //   method: 'POST',
+    //   headers: { 'Content-Type': 'application/json' },
+    //   body: highlightsData,
+    // });
+  };
 
   return (
     <HighlightsBox>
@@ -77,6 +101,13 @@ export const Highlighting = ({ printToTerminal }: HighlightingProps) => {
       >
         Get all Highlights
       </PanelButton>
+      <PanelButton
+        variant="contained"
+        size="small"
+        onClick={saveHighlightsForSearch}
+      >
+        Save Highlights for Similarity Search
+      </PanelButton>
     </HighlightsBox>
-  )
-}
+  );
+};
